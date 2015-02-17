@@ -1,0 +1,42 @@
+{
+  "name": "atom-save-commands",
+  "main": "./lib/atom-save-commands",
+  "version": "0.1.0",
+  "description": "Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
+  "license": "MIT",
+  "engines": {
+    "atom": ">=0.174.0 <2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JsonHunt/atom-save-commands.git"
+  },
+  "keywords": [
+    "monitor",
+    "watch",
+    "watcher",
+    "file",
+    "folder",
+    "directory",
+    "save",
+    "edited",
+    "modified",
+    "build",
+    "command",
+    "parameters",
+    "run",
+    "glob",
+    "filename",
+    "shell"
+  ],
+  "author": "Json Hunt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JsonHunt/atom-save-commands/issues"
+  },
+  "homepage": "https://github.com/JsonHunt/atom-save-commands",
+  "dependencies": {
+    "minimatch": "*",
+    "string": "*"
+  }
+}
