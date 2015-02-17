@@ -1,5 +1,5 @@
 {
-  "name": "atom-save-commands",
+  "name": "save-commands",
   "main": "./lib/atom-save-commands",
   "version": "0.1.0",
   "description": "Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
