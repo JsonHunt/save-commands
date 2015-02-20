@@ -1,7 +1,7 @@
-# atom-save-commands package
+# Save-commands package for Atom editor
 
-This package allows you to assign parametrized shell commands
-to file globs to be automatically run whenever the file is saved.  
+This package allows you to define parametrized shell commands
+to be automatically run whenever a file matching glob pattern is saved.  
 The command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  
 This effectively eliminates the need for file watchers, and simplifies your build process.
 
