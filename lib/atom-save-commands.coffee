@@ -54,6 +54,7 @@ module.exports = AtomSaveCommands =
 			@subscriptions.add editor.onDidSave (event)=>
 				timeoutMs = atom.config.get('save-commands.timeoutDuration')
 				arr = atom.config.get('save-commands.saveCommands')
+				return if arr is undefined
 				for gc in arr
 					kv = gc.split(':')
 					if kv.length isnt 2

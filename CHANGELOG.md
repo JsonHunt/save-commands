@@ -7,5 +7,7 @@
 * updated Readme.md
 * added panel timeout duration to config
 * added better handling of malformed configuration
+* added newline support for output panels
+* Fixed error when no commands are configured
 
 ## 0.1.0 - First Release
