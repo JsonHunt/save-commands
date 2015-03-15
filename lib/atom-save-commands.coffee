@@ -2,6 +2,8 @@ minimatch = require 'minimatch'
 child_process = require 'child_process'
 path = require 'path'
 S = require 'string'
+spawn = require 'win-spawn'
+_ = require 'underscore'
 
 AtomSaveCommandsView = require './atom-save-commands-view'
 {CompositeDisposable} = require 'atom'
@@ -136,25 +138,43 @@ module.exports = AtomSaveCommands =
 						commandDiv.textContent = command
 						# console.log "Executing command #{command}\nin #{atom.project.getPaths()[0]}"
 						# @atomSaveCommandsView.message.textContent = ""
-						child_process.exec command, { cwd: atom.project.getPaths()[0], timeout: 2000 }, (error, stdout, stderr) =>
-							resultDiv.classList.add('save-result-visible')
-							if error
-								# @atomSaveCommandsView.message.textContent += '\n'+ error.toString()
-								resultDiv.textContent += '\n'+ error.toString()
-								resultDiv.classList.add('save-result-error')
-								# console.log error.toString()
-							if stdout
-								# @atomSaveCommandsView.message.textContent += '\n'+ stdout
-								resultDiv.textContent += '\n'+ stdout
+						cmdarr = command.split(' ')
+						command = cmdarr[0]
+						args = _.rest(cmdarr)
+						console.log command
+						console.log args
+						cspr = spawn command, args ,
+							cwd: atom.project.getPaths()[0]
 
-								# console.log stdout
-							if stderr
-								# @atomSaveCommandsView.message.textContent += '\n'+ stderr
-								resultDiv.textContent += '\n'+ stderr
-								# console.log stderr
-							# @modalPanel.show()
-							if !error and !stderr and !stdout
-								resultDiv.textContent += "Done."
+						resultDiv.classList.add('save-result-visible')
+						cspr.stdout.on 'data', (data)->
+							console.log data.toString()
+							resultDiv.textContent += data.toString()
+
+						cspr.stderr.on 'data', (data)->
+							console.log data.toString()
+							resultDiv.textContent += data.toString()
+							resultDiv.classList.add('save-result-error')
+
+						# child_process.exec command, { cwd: atom.project.getPaths()[0], timeout: 2000 }, (error, stdout, stderr) =>
+						# 	resultDiv.classList.add('save-result-visible')
+						# 	if error
+						# 		# @atomSaveCommandsView.message.textContent += '\n'+ error.toString()
+						# 		resultDiv.textContent += '\n'+ error.toString()
+						# 		resultDiv.classList.add('save-result-error')
+						# 		# console.log error.toString()
+						# 	if stdout
+						# 		# @atomSaveCommandsView.message.textContent += '\n'+ stdout
+						# 		resultDiv.textContent += '\n'+ stdout
+						#
+						# 		# console.log stdout
+						# 	if stderr
+						# 		# @atomSaveCommandsView.message.textContent += '\n'+ stderr
+						# 		resultDiv.textContent += '\n'+ stderr
+						# 		# console.log stderr
+						# 	# @modalPanel.show()
+						# 	if !error and !stderr and !stdout
+						# 		resultDiv.textContent += "Done."
 
 	deactivate: ->
 		@modalPanel.destroy()
