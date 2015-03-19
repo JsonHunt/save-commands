@@ -112,7 +112,7 @@ module.exports = AtomSaveCommands =
 		command = cmdarr[0]
 		args = _.rest(cmdarr)
 		cspr = spawn command, args ,
-			cwd: atom.project.getPaths()[0]
+			cwd: @config.cwd
 
 		resultDiv.classList.add('save-result-visible')
 		cspr.stdout.on 'data', (data)->
@@ -151,6 +151,7 @@ module.exports = AtomSaveCommands =
 							timeout: 4000
 							commands: []
 
+					@config.cwd ?= atom.project.getPaths()[0]
 					#timeoutMs = config.timeout # atom.config.get('save-commands.timeoutDuration')
 					arr = @config.commands # atom.config.get('save-commands.saveCommands')
 
