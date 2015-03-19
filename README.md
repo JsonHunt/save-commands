@@ -12,15 +12,19 @@ Create one entry for each command you wish to run, and assign it to a glob like 
 glob : command {parameter}
 
 Your save-commands.json should look similar to this:
-
+```
 {
 	"timeout": 4000,
 	"commands": [
 		"src/**/*.coffee : coffee -c --map -o gen{relPathNoRoot} {relPath}/{filename}",
 		"src/**/*.jade   : jade -P {relPath}/{filename} -o gen/{relPathNoRoot}",
 		"src/**/*.styl   : stylus {relPath}/{filename} --out gen/{relPathNoRoot}"
+		"test/**/*.coffee : mocha --compilers coffee:coffee-script/register"
 	]
 }
+```
+
+Optionally, you can add "cwd" property to define custom working directory. By default, it is your project root.
 
 ### Available parameters:  
 - absPath: absolute path of the saved file (without file name)  
@@ -32,17 +36,7 @@ Your save-commands.json should look similar to this:
 - ext: file extension  
 - sep: os specific path separator
 
-### Sample config.cson
-```
-"save-commands":  
-	saveCommands: [  
-		"src/**/*.coffee : coffee --compile --map -o build/{relPathNoRoot} {relFullPath}"  
-		"src/**/*.jade : jade -P {relFullPath} -o build/{relPathNoRoot}"  
-		"src/**/*.styl : stylus {relFullPath} --out build/{relPathNoRoot}"  
-		"src/**/*.coffee : mocha --compilers coffee:coffee-script/register"  
-		"test/**/*.coffee : mocha --compilers coffee:coffee-script/register"  
-	]
-```
+
 
 This sample makes Atom automatically compile all CoffeeScript
 files from 'src' directory tree into 'build' directory, keeping the folder structure.  

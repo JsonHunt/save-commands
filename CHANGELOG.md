@@ -2,6 +2,7 @@
 * configuration moved to save-commands.json
 * commands now executed in sequence one after another
 * using win-spawn for better command output
+* added cwd config option
 
 ## 0.3.1
 * Fixed path error for top-level project files
