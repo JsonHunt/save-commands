@@ -4,6 +4,8 @@ path = require 'path'
 S = require 'string'
 spawn = require 'win-spawn'
 _ = require 'underscore'
+fs = require 'fs'
+async = require 'async'
 
 AtomSaveCommandsView = require './atom-save-commands-view'
 {CompositeDisposable} = require 'atom'
@@ -39,6 +41,91 @@ module.exports = AtomSaveCommands =
 			default: '4000'
 			title: 'Output panel timeout duration in ms'
 
+	showError: (gc)->
+		epanel = atom.workspace.addBottomPanel(
+			item: document.createElement('div')
+			visible: true
+			priority: 100
+		)
+		resultDiv = document.createElement('div')
+		resultDiv.classList.add('save-result')
+		resultDiv.classList.add('save-result-visible')
+		resultDiv.classList.add('save-result-error')
+		resultDiv.textContent = """
+			Malformed save command:
+			#{gc}
+
+			Usage: glob : command
+		"""
+		epanel.item.appendChild(resultDiv)
+		setTimeout ()->
+			epanel.destroy()
+		, @config.timeout
+
+	convertCommand: (eventPath, relativePath, command) ->
+			apo = path.parse eventPath
+			rpo = path.parse relativePath
+			model = {}
+			model.absPath = apo.dir + path.sep
+			model.relPath = rpo.dir
+			index = rpo.dir.indexOf(path.sep)
+			model.relPathNoRoot = rpo.dir.substr(index) if index isnt -1
+			model.relPathNoRoot = '' if index is -1
+			if model.relPath isnt ''
+				model.relPath += path.sep
+			if model.relPathNoRoot isnt ''
+				model.relPathNoRoot += path.sep
+			model.name = rpo.name
+			model.ext = rpo.ext
+			model.filename = rpo.base
+			model.relFullPath = model.relPath + model.filename
+			model.sep = path.sep
+			for key,value of model
+				fkey = '{' + key + '}'
+				command = S(command).replaceAll(fkey,value).s
+			command
+
+	executeCommand: (command, callback) ->
+		@priority -= 10
+		panel = atom.workspace.addBottomPanel(
+			item: document.createElement('div')
+			visible: true
+			priority: @priority
+		)
+
+		setTimeout ()=>
+			panel.destroy()
+		, @config.timeout
+
+		commandDiv = document.createElement('div')
+		commandDiv.classList.add('save-command')
+		resultDiv = document.createElement('div')
+		resultDiv.classList.add('save-result')
+
+		panel.item.appendChild(commandDiv)
+		panel.item.appendChild(resultDiv)
+
+		commandDiv.textContent = command
+		# console.log "Executing command #{command}\nin #{atom.project.getPaths()[0]}"
+		# @atomSaveCommandsView.message.textContent = ""
+		cmdarr = command.split(' ')
+		command = cmdarr[0]
+		args = _.rest(cmdarr)
+		cspr = spawn command, args ,
+			cwd: atom.project.getPaths()[0]
+
+		resultDiv.classList.add('save-result-visible')
+		cspr.stdout.on 'data', (data)->
+			resultDiv.textContent += data.toString()
+
+		cspr.stderr.on 'data', (data)->
+			resultDiv.textContent += data.toString()
+			resultDiv.classList.add('save-result-error')
+
+		cspr.stdout.on 'close', (code,signal)->
+			callback()
+		cspr.stderr.on 'close', (code,signal)->
+			callback()
 
 	activate: (state) ->
 		@atomSaveCommandsView = new AtomSaveCommandsView(state.atomSaveCommandsViewState)
@@ -54,127 +141,35 @@ module.exports = AtomSaveCommands =
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
 			@subscriptions.add editor.onDidSave (event)=>
-				timeoutMs = atom.config.get('save-commands.timeoutDuration')
-				arr = atom.config.get('save-commands.saveCommands')
-				return if arr is undefined
-				for gc in arr
-					kv = gc.split(':')
-					if kv.length isnt 2
-						epanel = atom.workspace.addBottomPanel(
-							item: document.createElement('div')
-							visible: true
-							priority: 100
-						)
-						resultDiv = document.createElement('div')
-						resultDiv.classList.add('save-result')
-						resultDiv.classList.add('save-result-visible')
-						resultDiv.classList.add('save-result-error')
-						resultDiv.textContent = """
-							Malformed save command:
-							#{gc}
+				@priority = 300
+				confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
+				fs.readFile confFile, (err,data)=>
+					if data
+						@config = JSON.parse(data)
+					if err
+						@config =
+							timeout: 4000
+							commands: []
 
-							Usage: glob : command
-						"""
-						epanel.item.appendChild(resultDiv)
+					#timeoutMs = config.timeout # atom.config.get('save-commands.timeoutDuration')
+					arr = @config.commands # atom.config.get('save-commands.saveCommands')
 
-						setTimeout ()->
-							epanel.destroy()
-						, timeoutMs
+					return if arr is undefined
+					cmdqueue = []
+					for gc in arr
+						kv = gc.split(':')
+						if kv.length isnt 2
+							@showError(gc)
+							continue
 
-						continue
+						glob = kv[0].trim()
+						command = kv[1].trim()
+						relativePath = atom.project.relativize(event.path)
+						if minimatch(relativePath, glob)
+							command = @convertCommand(event.path, relativePath, command)
+							cmdqueue.push command
 
-					glob = kv[0].trim()
-					command = kv[1].trim()
-					relativePath = atom.project.relativize(event.path)
-					if minimatch(relativePath, glob)
-						apo = path.parse event.path
-						rpo = path.parse relativePath
-						model = {}
-						model.absPath = apo.dir + path.sep
-						model.relPath = rpo.dir
-						index = rpo.dir.indexOf(path.sep)
-						model.relPathNoRoot = rpo.dir.substr(index) if index isnt -1
-						model.relPathNoRoot = '' if index is -1
-
-						if model.relPath isnt ''
-							model.relPath += path.sep
-
-						if model.relPathNoRoot isnt ''
-							model.relPathNoRoot += path.sep
-
-						# model.absPath = path.normalize model.absPath
-						# model.relPath = path.normalize model.relPath
-						# model.relPathNoRoot = path.normalize model.relPathNoRoot
-
-						model.name = rpo.name
-						model.ext = rpo.ext
-						model.filename = rpo.base
-
-						model.relFullPath = model.relPath + model.filename
-						model.sep = path.sep
-
-						for key,value of model
-							fkey = '{' + key + '}'
-							command = S(command).replaceAll(fkey,value).s
-
-						panel = atom.workspace.addBottomPanel(
-							item: document.createElement('div')
-							visible: true
-							priority: 100
-						)
-
-						setTimeout ()=>
-							panel.destroy()
-						, timeoutMs
-
-						commandDiv = document.createElement('div')
-						commandDiv.classList.add('save-command')
-						resultDiv = document.createElement('div')
-						resultDiv.classList.add('save-result')
-
-						panel.item.appendChild(commandDiv)
-						panel.item.appendChild(resultDiv)
-
-						commandDiv.textContent = command
-						# console.log "Executing command #{command}\nin #{atom.project.getPaths()[0]}"
-						# @atomSaveCommandsView.message.textContent = ""
-						cmdarr = command.split(' ')
-						command = cmdarr[0]
-						args = _.rest(cmdarr)
-						console.log command
-						console.log args
-						cspr = spawn command, args ,
-							cwd: atom.project.getPaths()[0]
-
-						resultDiv.classList.add('save-result-visible')
-						cspr.stdout.on 'data', (data)->
-							console.log data.toString()
-							resultDiv.textContent += data.toString()
-
-						cspr.stderr.on 'data', (data)->
-							console.log data.toString()
-							resultDiv.textContent += data.toString()
-							resultDiv.classList.add('save-result-error')
-
-						# child_process.exec command, { cwd: atom.project.getPaths()[0], timeout: 2000 }, (error, stdout, stderr) =>
-						# 	resultDiv.classList.add('save-result-visible')
-						# 	if error
-						# 		# @atomSaveCommandsView.message.textContent += '\n'+ error.toString()
-						# 		resultDiv.textContent += '\n'+ error.toString()
-						# 		resultDiv.classList.add('save-result-error')
-						# 		# console.log error.toString()
-						# 	if stdout
-						# 		# @atomSaveCommandsView.message.textContent += '\n'+ stdout
-						# 		resultDiv.textContent += '\n'+ stdout
-						#
-						# 		# console.log stdout
-						# 	if stderr
-						# 		# @atomSaveCommandsView.message.textContent += '\n'+ stderr
-						# 		resultDiv.textContent += '\n'+ stderr
-						# 		# console.log stderr
-						# 	# @modalPanel.show()
-						# 	if !error and !stderr and !stdout
-						# 		resultDiv.textContent += "Done."
+					async.eachSeries cmdqueue, @executeCommand.bind(@), (err,result)->
 
 	deactivate: ->
 		@modalPanel.destroy()

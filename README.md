@@ -1,19 +1,26 @@
 # Save-commands package for Atom editor
 
 This package allows you to define parametrized shell commands
-to be automatically run whenever a file matching glob pattern is saved.  
+to be automatically run, in sequence, whenever a file matching glob pattern is saved.  
 The command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  
 This effectively eliminates the need for file watchers, and simplifies your build process.
 
 ### How to use
 
-At the time this package was developed, Atom didn't have a good GUI support for configuration items with array type, so after installing the package,
-go to File -> Open your config.  
-Locate atom-save-commands: saveCommands array.
-
+Create save-commands.json file in your project's root folder.
 Create one entry for each command you wish to run, and assign it to a glob like this:  
 glob : command {parameter}
 
+Your save-commands.json should look similar to this:
+
+{
+	"timeout": 4000,
+	"commands": [
+		"src/**/*.coffee : coffee -c --map -o gen{relPathNoRoot} {relPath}/{filename}",
+		"src/**/*.jade   : jade -P {relPath}/{filename} -o gen/{relPathNoRoot}",
+		"src/**/*.styl   : stylus {relPath}/{filename} --out gen/{relPathNoRoot}"
+	]
+}
 
 ### Available parameters:  
 - absPath: absolute path of the saved file (without file name)  
