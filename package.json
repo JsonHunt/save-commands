@@ -1,140 +1,140 @@
 {
-	"name": "save-commands",
-	"main": "./lib/atom-save-commands",
-	"version": "0.5.0",
-	"description": "Package for Atom. Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
-	"license": "ISC",
-	"engines": {
-		"atom": ">=0.174.0 <2.0.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/JsonHunt/save-commands.git"
-	},
-	"keywords": [
-		"monitor",
-		"watch",
-		"watcher",
-		"file",
-		"folder",
-		"directory",
-		"save",
-		"edited",
-		"modified",
-		"build",
-		"command",
-		"parameters",
-		"run",
-		"glob",
-		"filename",
-		"shell"
-	],
-	"author": {
-		"name": "Json Hunt"
-	},
-	"bugs": {
-		"url": "https://github.com/JsonHunt/save-commands/issues"
-	},
-	"homepage": "https://github.com/JsonHunt/save-commands",
-	"dependencies": {
-		"async": "^0.9.0",
-		"minimatch": "*",
-		"string": "*",
-		"underscore": "^1.8.2",
-		"win-spawn": "^2.0.0"
-	},
-	"readme": "# atom-save-commands package\n\nThis package allows you to assign parametrized shell commands\nto file globs to be automatically run whenever the file is saved.  \nThe command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  \nThis effectively eliminates the need for file watchers, and simplifies your build process.\n\n### How to use\n\nAt the time this package was developed, Atom didn't have a good GUI support for configuration items with array type, so after installing the package,\ngo to File -> Open your config.  \nLocate atom-save-commands: saveCommands array.\n\nCreate one entry for each command you wish to run, and assign it to a glob like this:  \nglob : command {parameter}\n\n\n### Available parameters:  \n- absPath: absolute path of the saved file (without file name)  \n- relPath: relative path of the saved file (without file name)  \n- relPathNoRoot: relative path without top folder  \n- filename: file name and extension  \n- name: file name without extension  \n- ext: file extension  \n\n### Sample config.cson\n\n\"atom-save-commands\":  \n  saveCommands: [  \n    \"src/\\*\\*/\\*.coffee : coffee --compile --map -o build/{relPathNoRoot} {relPath}/{filename}\"  \n    \"src/\\*\\*/\\*.jade : jade -P {relPath}/{filename} -o build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.styl : stylus {relPath}/{filename} --out build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"  \n    \"test/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"\n  ]\n\nThis sample makes Atom automatically compile all CoffeeScript\nfiles from 'src' directory tree into 'build' directory, keeping the folder structure.  \nAll Jade templates and Stylus files are compiled in a similar fashion.  \nIn addition, Atom will run mocha test specs in 'test' folder whenever any of the specs or source files is modified and saved.\n",
-	"readmeFilename": "README.md",
-	"_id": "save-commands@0.3.0",
-	"_shasum": "edb7b49b364dc505b7f220850fc7bcf36788910f",
-	"_resolved": "file:..\\d-115118-14672-63latl\\package.tgz",
-	"_from": "..\\d-115118-14672-63latl\\package.tgz",
-	"_atomModuleCache": {
-		"version": 1,
-		"dependencies": [
-			{
-				"name": "minimatch",
-				"version": "2.0.1",
-				"path": "node_modules\\minimatch\\minimatch.js"
-			},
-			{
-				"name": "brace-expansion",
-				"version": "1.1.0",
-				"path": "node_modules\\minimatch\\node_modules\\brace-expansion\\index.js"
-			},
-			{
-				"name": "balanced-match",
-				"version": "0.2.0",
-				"path": "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\index.js"
-			},
-			{
-				"name": "concat-map",
-				"version": "0.0.1",
-				"path": "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\index.js"
-			},
-			{
-				"name": "string",
-				"version": "3.0.0",
-				"path": "node_modules\\string\\lib\\string.js"
-			}
-		],
-		"extensions": {
-			".coffee": [
-				"lib\\atom-save-commands-view.coffee",
-				"lib\\atom-save-commands.coffee"
-			],
-			".js": [
-				"node_modules\\minimatch\\benchmark.js",
-				"node_modules\\minimatch\\browser.js",
-				"node_modules\\minimatch\\minimatch.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\example.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\index.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\example.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\index.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\example\\map.js",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\index.js",
-				"node_modules\\string\\lib\\string.js",
-				"node_modules\\string\\lib\\string.min.js"
-			],
-			".json": [
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\package.json",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\package.json",
-				"node_modules\\minimatch\\node_modules\\brace-expansion\\package.json",
-				"node_modules\\minimatch\\package.json",
-				"node_modules\\string\\package.json",
-				"package.json"
-			]
-		},
-		"folders": [
-			{
-				"paths": [
-					"lib",
-					""
-				],
-				"dependencies": {
-					"minimatch": "*",
-					"string": "*"
-				}
-			},
-			{
-				"paths": [
-					"node_modules\\minimatch",
-					"node_modules\\minimatch\\test"
-				],
-				"dependencies": {
-					"brace-expansion": "^1.0.0"
-				}
-			},
-			{
-				"paths": [
-					"node_modules\\minimatch\\node_modules\\brace-expansion",
-					"node_modules\\minimatch\\node_modules\\brace-expansion\\test"
-				],
-				"dependencies": {
-					"balanced-match": "^0.2.0",
-					"concat-map": "0.0.1"
-				}
-			}
-		]
-	}
+  "name": "save-commands",
+  "main": "./lib/atom-save-commands",
+  "version": "0.5.1",
+  "description": "Package for Atom. Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
+  "license": "ISC",
+  "engines": {
+    "atom": ">=0.174.0 <2.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JsonHunt/save-commands.git"
+  },
+  "keywords": [
+    "monitor",
+    "watch",
+    "watcher",
+    "file",
+    "folder",
+    "directory",
+    "save",
+    "edited",
+    "modified",
+    "build",
+    "command",
+    "parameters",
+    "run",
+    "glob",
+    "filename",
+    "shell"
+  ],
+  "author": {
+    "name": "Json Hunt"
+  },
+  "bugs": {
+    "url": "https://github.com/JsonHunt/save-commands/issues"
+  },
+  "homepage": "https://github.com/JsonHunt/save-commands",
+  "dependencies": {
+    "async": "^0.9.0",
+    "minimatch": "*",
+    "string": "*",
+    "underscore": "^1.8.2",
+    "win-spawn": "^2.0.0"
+  },
+  "readme": "# atom-save-commands package\n\nThis package allows you to assign parametrized shell commands\nto file globs to be automatically run whenever the file is saved.  \nThe command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  \nThis effectively eliminates the need for file watchers, and simplifies your build process.\n\n### How to use\n\nAt the time this package was developed, Atom didn't have a good GUI support for configuration items with array type, so after installing the package,\ngo to File -> Open your config.  \nLocate atom-save-commands: saveCommands array.\n\nCreate one entry for each command you wish to run, and assign it to a glob like this:  \nglob : command {parameter}\n\n\n### Available parameters:  \n- absPath: absolute path of the saved file (without file name)  \n- relPath: relative path of the saved file (without file name)  \n- relPathNoRoot: relative path without top folder  \n- filename: file name and extension  \n- name: file name without extension  \n- ext: file extension  \n\n### Sample config.cson\n\n\"atom-save-commands\":  \n  saveCommands: [  \n    \"src/\\*\\*/\\*.coffee : coffee --compile --map -o build/{relPathNoRoot} {relPath}/{filename}\"  \n    \"src/\\*\\*/\\*.jade : jade -P {relPath}/{filename} -o build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.styl : stylus {relPath}/{filename} --out build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"  \n    \"test/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"\n  ]\n\nThis sample makes Atom automatically compile all CoffeeScript\nfiles from 'src' directory tree into 'build' directory, keeping the folder structure.  \nAll Jade templates and Stylus files are compiled in a similar fashion.  \nIn addition, Atom will run mocha test specs in 'test' folder whenever any of the specs or source files is modified and saved.\n",
+  "readmeFilename": "README.md",
+  "_id": "save-commands@0.3.0",
+  "_shasum": "edb7b49b364dc505b7f220850fc7bcf36788910f",
+  "_resolved": "file:..\\d-115118-14672-63latl\\package.tgz",
+  "_from": "..\\d-115118-14672-63latl\\package.tgz",
+  "_atomModuleCache": {
+    "version": 1,
+    "dependencies": [
+      {
+        "name": "minimatch",
+        "version": "2.0.1",
+        "path": "node_modules\\minimatch\\minimatch.js"
+      },
+      {
+        "name": "brace-expansion",
+        "version": "1.1.0",
+        "path": "node_modules\\minimatch\\node_modules\\brace-expansion\\index.js"
+      },
+      {
+        "name": "balanced-match",
+        "version": "0.2.0",
+        "path": "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\index.js"
+      },
+      {
+        "name": "concat-map",
+        "version": "0.0.1",
+        "path": "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\index.js"
+      },
+      {
+        "name": "string",
+        "version": "3.0.0",
+        "path": "node_modules\\string\\lib\\string.js"
+      }
+    ],
+    "extensions": {
+      ".coffee": [
+        "lib\\atom-save-commands-view.coffee",
+        "lib\\atom-save-commands.coffee"
+      ],
+      ".js": [
+        "node_modules\\minimatch\\benchmark.js",
+        "node_modules\\minimatch\\browser.js",
+        "node_modules\\minimatch\\minimatch.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\example.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\index.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\example.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\index.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\example\\map.js",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\index.js",
+        "node_modules\\string\\lib\\string.js",
+        "node_modules\\string\\lib\\string.min.js"
+      ],
+      ".json": [
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\balanced-match\\package.json",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\node_modules\\concat-map\\package.json",
+        "node_modules\\minimatch\\node_modules\\brace-expansion\\package.json",
+        "node_modules\\minimatch\\package.json",
+        "node_modules\\string\\package.json",
+        "package.json"
+      ]
+    },
+    "folders": [
+      {
+        "paths": [
+          "lib",
+          ""
+        ],
+        "dependencies": {
+          "minimatch": "*",
+          "string": "*"
+        }
+      },
+      {
+        "paths": [
+          "node_modules\\minimatch",
+          "node_modules\\minimatch\\test"
+        ],
+        "dependencies": {
+          "brace-expansion": "^1.0.0"
+        }
+      },
+      {
+        "paths": [
+          "node_modules\\minimatch\\node_modules\\brace-expansion",
+          "node_modules\\minimatch\\node_modules\\brace-expansion\\test"
+        ],
+        "dependencies": {
+          "balanced-match": "^0.2.0",
+          "concat-map": "0.0.1"
+        }
+      }
+    ]
+  }
 }
