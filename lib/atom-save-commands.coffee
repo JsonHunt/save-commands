@@ -98,17 +98,20 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
+		div = atom.workspaceView.find('.save-result')
 		cspr.stdout.on 'data', (data)=>
-			cmdDiv = document.createElement('div')
-			cmdDiv.textContent = data.toString()
-			cmdDiv.classList.add('save-result-out')
-			@resultDiv.appendChild cmdDiv
+			# cmdDiv = document.createElement('div')
+			# cmdDiv.textContent = data.toString()
+			# cmdDiv.classList.add('save-result-out')
+			# @resultDiv.appendChild cmdDiv
+			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stderr.on 'data', (data)=>
 			cmdDiv = document.createElement('div')
 			cmdDiv.textContent = data.toString()
 			cmdDiv.classList.add('save-result-error')
 			@resultDiv.appendChild cmdDiv
+			div.scrollTop div.prop("scrollHeight")
 
 		cspr.stdout.on 'close', (code,signal)=>
 			callback()
@@ -148,12 +151,12 @@ module.exports = AtomSaveCommands =
 		# 	panel.destroy()
 		# , @config.timeout
 
-		@commandDiv = document.createElement('div')
-		@commandDiv.classList.add('save-command')
+		# @commandDiv = document.createElement('div')
+		# @commandDiv.classList.add('save-command')
 		@resultDiv = document.createElement('div')
 		@resultDiv.classList.add('save-result')
 
-		@panel.item.appendChild(@commandDiv)
+		# @panel.item.appendChild(@commandDiv)
 		@panel.item.appendChild(@resultDiv)
 		@panel.hide()
 
@@ -163,7 +166,7 @@ module.exports = AtomSaveCommands =
 
 	killPanel: ()->
 		@panel.hide()
-		@commandDiv.textContent = ""
+		# @commandDiv.textContent = ""
 		@resultDiv.remove()
 		@resultDiv = document.createElement('div')
 		@resultDiv.classList.add('save-result')
@@ -200,16 +203,13 @@ module.exports = AtomSaveCommands =
 		atomSaveCommandsViewState: @atomSaveCommandsView.serialize()
 
 	executeOn: (path)->
+		@killPanel()
 		@loadConfig ()=>
 			@getFilesOn path, (files)=>
 				commands = []
 				for file in files
 					commands = _.union commands, @getCommandsFor(file)
-				if commands.length is 0
-					@killPanel()
-				else
-					@commandDiv.textContent = "Running save commands on '#{path}'"
-					@resultDiv.textContent = ""
+				if commands.length > 0
 					@panel.show()
 					async.eachSeries commands, @executeCommand.bind(@)
 

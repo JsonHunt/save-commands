@@ -1,3 +1,8 @@
+## 0.5.2
+* Removed output from stdout, kept output from stderr
+* Removed panel header
+* Added auto scrolling
+
 ## 0.5.1
 * added batch commands for folders
 * only one panel is now displayed
