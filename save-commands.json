@@ -1,0 +1,6 @@
+{
+	"timeout": 4000,
+	"commands": [
+		"lib/**/*.coffee : coffee -n {relFullPath}"
+	]
+}

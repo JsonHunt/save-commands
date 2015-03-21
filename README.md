@@ -2,7 +2,11 @@
 
 This package allows you to define parametrized shell commands
 to be automatically run, in sequence, whenever a file matching glob pattern is saved.  
-The command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  
+You can define as many globs and commands as you want.
+The command(s) and their output will be displayed in a panel at the bottom of the screen. Hit 'Esc' to dismiss the panel.
+
+Right click on a tree view file and select "Run save-commands" to run all commands mapped to this file. Selecting a folder will run proper run commands on all files contained in it (recursively).
+
 This effectively eliminates the need for file watchers, and simplifies your build process.
 
 ### How to use
@@ -43,24 +47,6 @@ files from 'src' directory tree into 'build' directory, keeping the folder struc
 All Jade templates and Stylus files are compiled in a similar fashion.  
 In addition, Atom will run mocha test specs in 'test' folder whenever any of the specs or source files is modified and saved.
 
-### Project manager
-
-This package works with the project-manager package, simply save your project, go to projects.cson and add your commands like this:
-```
-'save-commands':
-	'title': 'save-commands'
-	'paths': [
-		...
-	]
-	'settings':
-		'save-commands':
-			'saveCommands': [
-				'**/*.coffee : coffee -c {relPath}{filename}'
-				...
-				...
-			]
-```
-
 ## Related packages
 
 ### [Auto-panes](https://github.com/JsonHunt/atom-auto-panes)
@@ -70,6 +56,6 @@ It is great for workflows where you work with related files, such as html-css-js
 
 It automatically opens related files with the same name in separate panels, automatically closes editors and panels when you open new file, and automatically saves modified files.
 
-## [Make coffee](https://github.com/JsonHunt/make-coffee)
+### [Make coffee](https://github.com/JsonHunt/make-coffee)
 
 Great tool when you are migrating a project from JavaScript to CoffeeScript. Adds an option 'Make me a coffee' to .js files in tree-view.

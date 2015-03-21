@@ -1,3 +1,8 @@
+## 0.5.1
+* added batch commands for folders
+* only one panel is now displayed
+* removed fake options from menus
+
 ## 0.4.1
 * configuration moved to save-commands.json
 * commands now executed in sequence one after another

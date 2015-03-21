@@ -62,7 +62,8 @@ module.exports = AtomSaveCommands =
 			epanel.destroy()
 		, @config.timeout
 
-	convertCommand: (eventPath, relativePath, command) ->
+	convertCommand: (eventPath, command) ->
+			relativePath = atom.project.relativize(eventPath)
 			apo = path.parse eventPath
 			rpo = path.parse relativePath
 			model = {}
@@ -86,45 +87,33 @@ module.exports = AtomSaveCommands =
 			command
 
 	executeCommand: (command, callback) ->
-		@priority -= 10
-		panel = atom.workspace.addBottomPanel(
-			item: document.createElement('div')
-			visible: true
-			priority: @priority
-		)
+		cmdDiv = document.createElement('div')
+		cmdDiv.textContent = command
+		cmdDiv.classList.add('command-name')
+		@resultDiv.appendChild cmdDiv
 
-		setTimeout ()=>
-			panel.destroy()
-		, @config.timeout
-
-		commandDiv = document.createElement('div')
-		commandDiv.classList.add('save-command')
-		resultDiv = document.createElement('div')
-		resultDiv.classList.add('save-result')
-
-		panel.item.appendChild(commandDiv)
-		panel.item.appendChild(resultDiv)
-
-		commandDiv.textContent = command
-		# console.log "Executing command #{command}\nin #{atom.project.getPaths()[0]}"
-		# @atomSaveCommandsView.message.textContent = ""
 		cmdarr = command.split(' ')
 		command = cmdarr[0]
 		args = _.rest(cmdarr)
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
-		resultDiv.classList.add('save-result-visible')
-		cspr.stdout.on 'data', (data)->
-			resultDiv.textContent += data.toString()
+		cspr.stdout.on 'data', (data)=>
+			cmdDiv = document.createElement('div')
+			cmdDiv.textContent = data.toString()
+			cmdDiv.classList.add('save-result-out')
+			@resultDiv.appendChild cmdDiv
 
-		cspr.stderr.on 'data', (data)->
-			resultDiv.textContent += data.toString()
-			resultDiv.classList.add('save-result-error')
+		cspr.stderr.on 'data', (data)=>
+			cmdDiv = document.createElement('div')
+			cmdDiv.textContent = data.toString()
+			cmdDiv.classList.add('save-result-error')
+			@resultDiv.appendChild cmdDiv
 
-		cspr.stdout.on 'close', (code,signal)->
+		cspr.stdout.on 'close', (code,signal)=>
 			callback()
-		cspr.stderr.on 'close', (code,signal)->
+
+		cspr.stderr.on 'close', (code,signal)=>
 			callback()
 
 	activate: (state) ->
@@ -135,42 +124,72 @@ module.exports = AtomSaveCommands =
 		@subscriptions = new CompositeDisposable
 
 		# Register command that toggles this view
-		@subscriptions.add atom.commands.add 'atom-workspace', 'save-commands:toggle': => @toggle()
+		@subscriptions.add atom.commands.add 'atom-workspace',
+			'save-commands:executeOn': =>
+				treeView = atom.packages.getLoadedPackage('tree-view')
+				if treeView
+					treeView = require(treeView.mainModulePath)
+					packageObj = treeView.serialize()
+					source = packageObj.selectedPath
+					@executeOn(source)
 
 		# console.log 'Save-commands registered text editor observer'
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
-			@subscriptions.add editor.onDidSave (event)=>
-				@priority = 300
-				confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
-				fs.readFile confFile, (err,data)=>
-					if data
-						@config = JSON.parse(data)
-					if err
-						@config =
-							timeout: 4000
-							commands: []
+			@subscriptions.add editor.onDidSave (event)=> @executeOn(event.path)
 
-					@config.cwd ?= atom.project.getPaths()[0]
-					#timeoutMs = config.timeout # atom.config.get('save-commands.timeoutDuration')
-					arr = @config.commands # atom.config.get('save-commands.saveCommands')
+		@panel = atom.workspace.addBottomPanel(
+			item: document.createElement('div')
+			visible: true
+			priority: 300
+		)
 
-					return if arr is undefined
-					cmdqueue = []
-					for gc in arr
-						kv = gc.split(':')
-						if kv.length isnt 2
-							@showError(gc)
-							continue
+		# setTimeout ()=>
+		# 	panel.destroy()
+		# , @config.timeout
 
-						glob = kv[0].trim()
-						command = kv[1].trim()
-						relativePath = atom.project.relativize(event.path)
-						if minimatch(relativePath, glob)
-							command = @convertCommand(event.path, relativePath, command)
-							cmdqueue.push command
+		@commandDiv = document.createElement('div')
+		@commandDiv.classList.add('save-command')
+		@resultDiv = document.createElement('div')
+		@resultDiv.classList.add('save-result')
 
-					async.eachSeries cmdqueue, @executeCommand.bind(@), (err,result)->
+		@panel.item.appendChild(@commandDiv)
+		@panel.item.appendChild(@resultDiv)
+		@panel.hide()
+
+		@subscriptions.add atom.commands.add 'atom-workspace',
+			'core:cancel': =>
+				@killPanel()
+
+	killPanel: ()->
+		@panel.hide()
+		@commandDiv.textContent = ""
+		@resultDiv.remove()
+		@resultDiv = document.createElement('div')
+		@resultDiv.classList.add('save-result')
+		@panel.item.appendChild(@resultDiv)
+
+	loadConfig: (callback)->
+		confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
+		fs.readFile confFile, (err,data)=>
+			if data
+				@config = JSON.parse(data)
+			if err
+				@config =
+					timeout: 4000
+					commands: []
+
+			@config.cwd ?= atom.project.getPaths()[0]
+
+			modCommands = []
+			for gc in @config.commands
+				kv = gc.split(':')
+				modCommands.push
+					glob: kv[0].trim()
+					command: kv[1].trim()
+
+			@config.commands = modCommands
+			callback @config
 
 	deactivate: ->
 		@modalPanel.destroy()
@@ -180,10 +199,44 @@ module.exports = AtomSaveCommands =
 	serialize: ->
 		atomSaveCommandsViewState: @atomSaveCommandsView.serialize()
 
-	toggle: ->
-		console.log 'AtomSaveCommands was toggled!'
+	executeOn: (path)->
+		@loadConfig ()=>
+			@getFilesOn path, (files)=>
+				commands = []
+				for file in files
+					commands = _.union commands, @getCommandsFor(file)
+				if commands.length is 0
+					@killPanel()
+				else
+					@commandDiv.textContent = "Running save commands on '#{path}'"
+					@resultDiv.textContent = ""
+					@panel.show()
+					async.eachSeries commands, @executeCommand.bind(@)
 
-		if @modalPanel.isVisible()
-			@modalPanel.hide()
-		else
-			@modalPanel.show()
+	getFilesOn: (absPath, callback)->
+		fs.lstat absPath, (err,stats)=>
+			if stats.isDirectory()
+				fs.readdir absPath, (err,files)=>
+					f = []
+					async.eachSeries files, (file,fileCb)=>
+						@getFilesOn "#{absPath}#{path.sep}#{file}", (filesX)->
+							f = _.union f, filesX
+							fileCb()
+					, (err)->
+						# console.log "Folder #{absPath} contains #{f.length} files"
+						callback(f)
+
+			if stats.isFile()
+				callback [absPath]
+
+	getCommandsFor: (file)->
+		# console.log "Commands for #{file}:"
+		commands = []
+		for cmd in @config.commands
+			relativePath = atom.project.relativize(file)
+			if minimatch(relativePath, cmd.glob)
+				commands.push @convertCommand(file, cmd.command)
+
+		for com in commands
+			console.log "  #{com}"
+		return commands

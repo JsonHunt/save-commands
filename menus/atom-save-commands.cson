@@ -1,22 +1,8 @@
 # See https://atom.io/docs/latest/creating-a-package#menus for more details
 'context-menu':
-  'atom-text-editor': [
-    {
-      'label': 'Toggle atom-save-commands'
-      'command': 'atom-save-commands:toggle'
-    }
-  ]
-'menu': [
-  {
-    'label': 'Packages'
-    'submenu': [
-      'label': 'atom-save-commands'
-      'submenu': [
-        {
-          'label': 'Toggle'
-          'command': 'atom-save-commands:toggle'
-        }
-      ]
-    ]
-  }
-]
+	'.tree-view .file span[data-name$=".js"]': [
+		{label: 'Run save-commands', command: 'save-commands:executeOn'}
+	]
+	'.tree-view .directory': [
+		{label: 'Run save-commands', command: 'save-commands:executeOn'}
+	]
