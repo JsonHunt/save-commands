@@ -1,3 +1,6 @@
+## 0.5.4
+* panel will automatically hide after specified timeout if no errors were generates
+
 ## 0.5.2
 * Removed output from stdout, kept output from stderr
 * Removed panel header

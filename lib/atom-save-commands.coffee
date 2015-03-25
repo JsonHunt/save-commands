@@ -87,6 +87,7 @@ module.exports = AtomSaveCommands =
 			command
 
 	executeCommand: (command, callback) ->
+		@hasError = false
 		cmdDiv = document.createElement('div')
 		cmdDiv.textContent = command
 		cmdDiv.classList.add('command-name')
@@ -107,6 +108,7 @@ module.exports = AtomSaveCommands =
 			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stderr.on 'data', (data)=>
+			@hasError = true
 			cmdDiv = document.createElement('div')
 			cmdDiv.textContent = data.toString()
 			cmdDiv.classList.add('save-result-error')
@@ -114,6 +116,10 @@ module.exports = AtomSaveCommands =
 			div.scrollTop div.prop("scrollHeight")
 
 		cspr.stdout.on 'close', (code,signal)=>
+			if not @hasError
+				setTimeout ()=>
+					@killPanel()
+				, @config.timeout
 			callback()
 
 		cspr.stderr.on 'close', (code,signal)=>
