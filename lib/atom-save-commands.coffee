@@ -178,15 +178,24 @@ module.exports = AtomSaveCommands =
 		@resultDiv.classList.add('save-result')
 		@panel.item.appendChild(@resultDiv)
 
+	tap: (o, fn) -> fn(o); o
+
+	merge: (xs...) ->
+	  if xs?.length > 0
+	    @tap {}, (m) -> m[k] = v for k, v of x for x in xs
+
 	loadConfig: (callback)->
 		confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
+
+		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
+		commands 	= atom.config.get('save-commands.commands')
+		@config = {}
+		@config.timeout 	= timeout ? 4000
+		@config.commands	= commands ? []
+
 		fs.readFile confFile, (err,data)=>
 			if data
-				@config = JSON.parse(data)
-			if err
-				@config =
-					timeout: 4000
-					commands: []
+				@config = @merge @config, JSON.parse(data)
 
 			@config.cwd ?= atom.project.getPaths()[0]
 
