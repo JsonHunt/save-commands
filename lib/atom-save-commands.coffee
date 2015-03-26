@@ -187,11 +187,11 @@ module.exports = AtomSaveCommands =
 	loadConfig: (callback)->
 		confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
 
-		timeoutDuration = atom.config.get('save-commands.timeoutDuration')	# Load global configurations
-		saveCommands 		= atom.config.get('save-commands.saveCommands')
+		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
+		commands 	= atom.config.get('save-commands.commands')
 		@config = {}
-		@config.timeout 	= timeoutDuration ? 4000
-		@config.commands	= saveCommands ? []
+		@config.timeout 	= timeout ? 4000
+		@config.commands	= commands ? []
 
 		fs.readFile confFile, (err,data)=>
 			if data

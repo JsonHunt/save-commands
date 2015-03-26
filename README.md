@@ -11,7 +11,15 @@ This effectively eliminates the need for file watchers, and simplifies your buil
 
 ### How to use
 
-Create save-commands.json file in your project's root folder.
+Can set up with global configurations
+### Sample config.cson for global configurations
+```
+"save-commands":
+	"timeout": 5000,
+	commands: []
+```
+
+Create save-commands.json file in your project's root folder to override the global settings
 Create one entry for each command you wish to run, and assign it to a glob like this:  
 glob : command {parameter}
 
