@@ -1,3 +1,7 @@
+## 0.6.1
+* fixed issues with behavior of notification panel
+* added 'suppress panel' setting
+
 ## 0.5.4
 * panel will automatically hide after specified timeout if no errors were generates
 

@@ -41,6 +41,11 @@ module.exports = AtomSaveCommands =
 			default: '4000'
 			title: 'Output panel timeout duration in ms'
 
+		suppressPanel:
+			type: 'boolean'
+			default: 'false'
+			title: 'Only display command output panel on error'
+
 	showError: (gc)->
 		epanel = atom.workspace.addBottomPanel(
 			item: document.createElement('div')
@@ -87,11 +92,11 @@ module.exports = AtomSaveCommands =
 			command
 
 	executeCommand: (command, callback) ->
-		@hasError = false
-		cmdDiv = document.createElement('div')
-		cmdDiv.textContent = command
-		cmdDiv.classList.add('command-name')
-		@resultDiv.appendChild cmdDiv
+		# console.log "COMMAND #{command}"
+		@cmdDiv = document.createElement('div')
+		@cmdDiv.textContent = command
+		@cmdDiv.classList.add('command-name')
+		@resultDiv.appendChild @cmdDiv
 
 		cmdarr = command.split(' ')
 		command = cmdarr[0]
@@ -101,29 +106,36 @@ module.exports = AtomSaveCommands =
 
 		div = atom.workspaceView.find('.save-result')
 		cspr.stdout.on 'data', (data)=>
-			# cmdDiv = document.createElement('div')
-			# cmdDiv.textContent = data.toString()
-			# cmdDiv.classList.add('save-result-out')
-			# @resultDiv.appendChild cmdDiv
-			# div.scrollTop div.prop("scrollHeight")
+			# console.log "STD OUT: #{data}"
+			dataDiv = document.createElement('div')
+			dataDiv.textContent = data.toString()
+			dataDiv.classList.add('save-result-out')
+			@resultDiv.appendChild dataDiv
+			div.scrollTop div.prop("scrollHeight")
 
 		cspr.stderr.on 'data', (data)=>
+			# console.log "ERR OUT: #{data}"
+			@panel.show()
 			@hasError = true
-			cmdDiv = document.createElement('div')
-			cmdDiv.textContent = data.toString()
-			cmdDiv.classList.add('save-result-error')
-			@resultDiv.appendChild cmdDiv
+			dataDiv = document.createElement('div')
+			dataDiv.textContent = data.toString()
+			dataDiv.classList.add('save-result-error')
+			@resultDiv.appendChild dataDiv
 			div.scrollTop div.prop("scrollHeight")
 
 		cspr.stdout.on 'close', (code,signal)=>
-			if not @hasError
-				setTimeout ()=>
-					@killPanel()
-				, @config.timeout
-			callback()
+			# console.log "STD CLOSE"
+			# callback()
 
 		cspr.stderr.on 'close', (code,signal)=>
-			callback()
+			# console.log "ERR CLOSE"
+			setTimeout ()=>
+				dataDiv = document.createElement('div')
+				dataDiv.textContent = "Done."
+				dataDiv.classList.add('command-name')
+				@resultDiv.appendChild dataDiv
+				callback()
+			,100
 
 	activate: (state) ->
 		@atomSaveCommandsView = new AtomSaveCommandsView(state.atomSaveCommandsViewState)
@@ -140,12 +152,21 @@ module.exports = AtomSaveCommands =
 					treeView = require(treeView.mainModulePath)
 					packageObj = treeView.serialize()
 					source = packageObj.selectedPath
-					@executeOn(source)
+					@executeOn(source,'save-commands.json')
+
+		@subscriptions.add atom.commands.add 'atom-workspace',
+			'save-commands:executeBatchOn': =>
+				treeView = atom.packages.getLoadedPackage('tree-view')
+				if treeView
+					treeView = require(treeView.mainModulePath)
+					packageObj = treeView.serialize()
+					source = packageObj.selectedPath
+					@executeOn(source,'batch-save-commands.json')
 
 		# console.log 'Save-commands registered text editor observer'
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
-			@subscriptions.add editor.onDidSave (event)=> @executeOn(event.path)
+			@subscriptions.add editor.onDidSave (event)=> @executeOn(event.path,'save-commands.json')
 
 		@panel = atom.workspace.addBottomPanel(
 			item: document.createElement('div')
@@ -173,7 +194,7 @@ module.exports = AtomSaveCommands =
 	killPanel: ()->
 		@panel.hide()
 		# @commandDiv.textContent = ""
-		@resultDiv.remove()
+		@resultDiv.remove() if @resultDiv
 		@resultDiv = document.createElement('div')
 		@resultDiv.classList.add('save-result')
 		@panel.item.appendChild(@resultDiv)
@@ -181,11 +202,11 @@ module.exports = AtomSaveCommands =
 	tap: (o, fn) -> fn(o); o
 
 	merge: (xs...) ->
-	  if xs?.length > 0
-	    @tap {}, (m) -> m[k] = v for k, v of x for x in xs
+		if xs?.length > 0
+			@tap {}, (m) -> m[k] = v for k, v of x for x in xs
 
-	loadConfig: (callback)->
-		confFile = atom.project.getPaths()[0] + path.sep + 'save-commands.json'
+	loadConfig: (filename,callback)->
+		confFile = atom.project.getPaths()[0] + path.sep + filename
 
 		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
 		commands 	= atom.config.get('save-commands.commands')
@@ -217,16 +238,26 @@ module.exports = AtomSaveCommands =
 	serialize: ->
 		atomSaveCommandsViewState: @atomSaveCommandsView.serialize()
 
-	executeOn: (path)->
+	executeOn: (path,configFile)->
 		@killPanel()
-		@loadConfig ()=>
+		suppressPanel = atom.config.get('save-commands.suppressPanel')	# Load global configurations
+		@loadConfig configFile, ()=>
 			@getFilesOn path, (files)=>
 				commands = []
 				for file in files
 					commands = _.union commands, @getCommandsFor(file)
 				if commands.length > 0
-					@panel.show()
-					async.eachSeries commands, @executeCommand.bind(@)
+					if !suppressPanel
+						@panel.show()
+					@hasError = false
+
+					cleanup = (err)->
+						setTimeout ()=>
+							@killPanel() if not @hasError
+						, @config.timeout
+
+					async.eachSeries commands, @executeCommand.bind(@), cleanup.bind(@)
+
 
 	getFilesOn: (absPath, callback)->
 		fs.lstat absPath, (err,stats)=>
@@ -252,6 +283,6 @@ module.exports = AtomSaveCommands =
 			if minimatch(relativePath, cmd.glob)
 				commands.push @convertCommand(file, cmd.command)
 
-		for com in commands
-			console.log "  #{com}"
+		# for com in commands
+		# 	console.log "  #{com}"
 		return commands

@@ -4,5 +4,5 @@
 		{label: 'Run save-commands', command: 'save-commands:executeOn'}
 	]
 	'.tree-view .directory': [
-		{label: 'Run save-commands', command: 'save-commands:executeOn'}
+		{label: 'Run batch save-commands', command: 'save-commands:executeBatchOn'}
 	]
