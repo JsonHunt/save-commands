@@ -222,10 +222,12 @@ module.exports = AtomSaveCommands =
 
 			modCommands = []
 			for gc in @config.commands
-				kv = gc.split(':')
+				index = gc.indexOf(':')
+				g = gc.substring(0, index)
+				c = gc.substring(index + 1)
 				modCommands.push
-					glob: kv[0].trim()
-					command: kv[1].trim()
+					glob: g.trim()
+					command: c.trim()
 
 			@config.commands = modCommands
 			callback @config
