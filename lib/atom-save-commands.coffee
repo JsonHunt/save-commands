@@ -104,7 +104,7 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
-		div = atom.views.getView(atom.workspace).find('.save-result')
+		div = atom.views.getView(atom.workspace).getElementsByClassName('save-result')[0]
 		cspr.stdout.on 'data', (data)=>
 			# console.log "STD OUT: #{data}"
 			dataDiv = document.createElement('div')
