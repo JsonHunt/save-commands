@@ -104,6 +104,8 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
+		@panel.show()
+
 		div = atom.views.getView(atom.workspace).getElementsByClassName('save-result')[0]
 		cspr.stdout.on 'data', (data)=>
 			# console.log "STD OUT: #{data}"
@@ -111,17 +113,17 @@ module.exports = AtomSaveCommands =
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-out')
 			@resultDiv.appendChild dataDiv
-			div.scrollTop div.prop("scrollHeight")
+			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stderr.on 'data', (data)=>
 			# console.log "ERR OUT: #{data}"
-			@panel.show()
+			# @panel.show()
 			@hasError = true
 			dataDiv = document.createElement('div')
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-error')
 			@resultDiv.appendChild dataDiv
-			div.scrollTop div.prop("scrollHeight")
+			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stdout.on 'close', (code,signal)=>
 			# console.log "STD CLOSE"
@@ -130,16 +132,16 @@ module.exports = AtomSaveCommands =
 		cspr.stderr.on 'close', (code,signal)=>
 			# console.log "ERR CLOSE"
 			setTimeout ()=>
-				dataDiv = document.createElement('div')
-				dataDiv.textContent = "Done."
-				dataDiv.classList.add('command-name')
-				@resultDiv.appendChild dataDiv
+				# dataDiv = document.createElement('div')
+				# dataDiv.textContent = "Done."
+				# dataDiv.classList.add('command-name')
+				# @resultDiv.appendChild dataDiv
 				callback()
 			,100
 
 	activate: (state) ->
 		@atomSaveCommandsView = new AtomSaveCommandsView(state.atomSaveCommandsViewState)
-		@modalPanel = atom.workspace.addModalPanel(item: @atomSaveCommandsView.getElement(), visible: false)
+		# @modalPanel = atom.workspace.addModalPanel(item: @atomSaveCommandsView.getElement(), visible: false)
 
 		# Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
 		@subscriptions = new CompositeDisposable
@@ -231,7 +233,7 @@ module.exports = AtomSaveCommands =
 			callback @config
 
 	deactivate: ->
-		@modalPanel.destroy()
+		# @modalPanel.destroy()
 		@subscriptions.dispose()
 		@atomSaveCommandsView.destroy()
 
@@ -253,8 +255,15 @@ module.exports = AtomSaveCommands =
 
 					cleanup = (err)->
 						setTimeout ()=>
-							@killPanel() if not @hasError
-						, @config.timeout
+							dataDiv = document.createElement('div')
+							dataDiv.textContent = "Done."
+							dataDiv.classList.add('command-name')
+							@resultDiv.appendChild dataDiv
+						,100
+
+						# setTimeout ()=>
+						# 	@killPanel() if not @hasError
+						# , @config.timeout
 
 					async.eachSeries commands, @executeCommand.bind(@), cleanup.bind(@)
 
