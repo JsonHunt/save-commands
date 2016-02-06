@@ -6,6 +6,7 @@ spawn = require 'win-spawn'
 _ = require 'underscore'
 fs = require 'fs'
 async = require 'async'
+$ = jQuery = require 'jquery'
 
 AtomSaveCommandsView = require './atom-save-commands-view'
 {CompositeDisposable} = require 'atom'
@@ -52,17 +53,17 @@ module.exports = AtomSaveCommands =
 			visible: true
 			priority: 100
 		)
-		resultDiv = document.createElement('div')
-		resultDiv.classList.add('save-result')
-		resultDiv.classList.add('save-result-visible')
-		resultDiv.classList.add('save-result-error')
-		resultDiv.textContent = """
+		@resultDiv = document.createElement('div')
+		@resultDiv.classList.add('save-result')
+		@resultDiv.classList.add('save-result-visible')
+		@resultDiv.classList.add('save-result-error')
+		@resultDiv.textContent = """
 			Malformed save command:
 			#{gc}
 
 			Usage: glob : command
 		"""
-		epanel.item.appendChild(resultDiv)
+		epanel.item.appendChild(@resultDiv)
 		setTimeout ()->
 			epanel.destroy()
 		, @config.timeout
@@ -111,7 +112,7 @@ module.exports = AtomSaveCommands =
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-out')
 			@resultDiv.appendChild dataDiv
-			div.scrollTop div.prop("scrollHeight")
+			$(@resultDiv).scrollTop $(@resultDiv).scrollHeight
 
 		cspr.stderr.on 'data', (data)=>
 			# console.log "ERR OUT: #{data}"
@@ -121,7 +122,7 @@ module.exports = AtomSaveCommands =
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-error')
 			@resultDiv.appendChild dataDiv
-			div.scrollTop div.prop("scrollHeight")
+			$(@resultDiv).scrollTop $(@resultDiv).scrollHeight
 
 		cspr.stdout.on 'close', (code,signal)=>
 			# console.log "STD CLOSE"
