@@ -104,9 +104,12 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
-		@panel.show()
+		suppress = atom.config.get('save-commands.suppressPanel')
+		if suppress is false
+			@panel.show()
 
 		div = atom.views.getView(atom.workspace).getElementsByClassName('save-result')[0]
+
 		cspr.stdout.on 'data', (data)=>
 			# console.log "STD OUT: #{data}"
 			dataDiv = document.createElement('div')
@@ -117,7 +120,7 @@ module.exports = AtomSaveCommands =
 
 		cspr.stderr.on 'data', (data)=>
 			# console.log "ERR OUT: #{data}"
-			# @panel.show()
+			@panel.show()
 			@hasError = true
 			dataDiv = document.createElement('div')
 			dataDiv.textContent = data.toString()
