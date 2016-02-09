@@ -6,10 +6,6 @@ This effectively eliminates the need for file watchers, and simplifies your buil
 You can define as many globs and commands as you want.
 The command(s) and their output will be displayed in a panel at the bottom of the screen. Hit 'Esc' to dismiss the panel.
 
-Right click on a tree view file and select "Run batch save-commands" to run all commands mapped to this file.
-Selecting a folder will run proper run commands on all files contained in it (recursively).
-For batch save commands use a different config file: batch-save-commands.json
-
 ### How to use
 
 Create save-commands.json file in your project's root folder

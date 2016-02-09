@@ -1,3 +1,6 @@
+## 0.6.8
+* removed menu items from file tree
+
 ## 0.6.7
 * fixed issues with special characters in linux shell commands
 * fixed issues with : in commands
