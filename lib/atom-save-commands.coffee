@@ -16,30 +16,30 @@ module.exports = AtomSaveCommands =
 	subscriptions: null
 
 	config:
-		saveCommands:
-			type: 'array'
-			default: []
-			items:
-				type: 'string'
-			title: 'Glob : command'
-			description: '''
-				Executes commands on save for files matching the glob.
-				Command can contain parameters:
-				{absPath}: absolute path of the saved file (without file name)
-				{relPath}: relative path of the saved file (without file name)
-				{relFullPath}: like relPath but with filename
-				{relPathNoRoot}: relative path without top folder
-				{filename}: file name and extension
-				{name}: file name without extension
-				{ext}: file extension
-				{sep}: os specific path separator
-
-				To configure multiple globs, use File -> Open your config
-			'''
-		timeoutDuration:
-			type: 'integer'
-			default: '4000'
-			title: 'Output panel timeout duration in ms'
+		# saveCommands:
+		# 	type: 'array'
+		# 	default: []
+		# 	items:
+		# 		type: 'string'
+		# 	title: 'Glob : command'
+		# 	description: '''
+		# 		Executes commands on save for files matching the glob.
+		# 		Command can contain parameters:
+		# 		{absPath}: absolute path of the saved file (without file name)
+		# 		{relPath}: relative path of the saved file (without file name)
+		# 		{relFullPath}: like relPath but with filename
+		# 		{relPathNoRoot}: relative path without top folder
+		# 		{filename}: file name and extension
+		# 		{name}: file name without extension
+		# 		{ext}: file extension
+		# 		{sep}: os specific path separator
+		#
+		# 		To configure multiple globs, use File -> Open your config
+		# 	'''
+		# timeoutDuration:
+		# 	type: 'integer'
+		# 	default: '4000'
+		# 	title: 'Output panel timeout duration in ms'
 
 		suppressPanel:
 			type: 'boolean'
@@ -213,12 +213,17 @@ module.exports = AtomSaveCommands =
 		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
 		commands 	= atom.config.get('save-commands.commands')
 		@config = {}
-		@config.timeout 	= timeout ? 4000
-		@config.commands	= commands ? []
+		# @config.timeout 	= timeout ? 4000
+		# @config.commands	= commands ? []
 
 		fs.readFile confFile, (err,data)=>
 			if data
-				@config = @merge @config, JSON.parse(data)
+				try
+					parsed = JSON.parse(data)
+				catch e
+					alert("Your save-commands config file is not a valid JSON")
+					return
+				@config = @merge @config, parsed
 
 			@config.cwd ?= atom.project.getPaths()[0]
 
