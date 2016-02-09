@@ -1,7 +1,7 @@
 {
   "name": "save-commands",
   "main": "./lib/atom-save-commands",
-  "version": "0.6.8",
+  "version": "0.6.9",
   "description": "Package for Atom. Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
   "license": "ISC",
   "engines": {
