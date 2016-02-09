@@ -8,7 +8,7 @@ fs = require 'fs'
 async = require 'async'
 
 AtomSaveCommandsView = require './atom-save-commands-view'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable,Directory,File} = require 'atom'
 
 module.exports = AtomSaveCommands =
 	atomSaveCommandsView: null
@@ -207,8 +207,17 @@ module.exports = AtomSaveCommands =
 		if xs?.length > 0
 			@tap {}, (m) -> m[k] = v for k, v of x for x in xs
 
-	loadConfig: (filename,callback)->
-		confFile = atom.project.getPaths()[0] + path.sep + filename
+	loadConfig: (editorPath, filename,callback)->
+		dir = new File(editorPath).getParent()
+		while (true)
+			confFile = dir.getPath() + path.sep + filename
+			file = new File(confFile)
+			exists = file.existsSync()
+			isRoot = dir.isRoot()
+			if isRoot and exists is false
+				throw "Missing config file save-commands.json on the path"
+			break if isRoot or exists
+			dir = dir.getParent()
 
 		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
 		commands 	= atom.config.get('save-commands.commands')
@@ -225,7 +234,7 @@ module.exports = AtomSaveCommands =
 					return
 				@config = @merge @config, parsed
 
-			@config.cwd ?= atom.project.getPaths()[0]
+			@config.cwd = dir.getPath()
 
 			splitOnce = (str,sep)->
 				components = str.split(sep)
@@ -242,7 +251,7 @@ module.exports = AtomSaveCommands =
 			callback @config
 
 	deactivate: ->
-		# @modalPanel.destroy()
+		@panel.destroy()
 		@subscriptions.dispose()
 		@atomSaveCommandsView.destroy()
 
@@ -252,7 +261,7 @@ module.exports = AtomSaveCommands =
 	executeOn: (path,configFile)->
 		@killPanel()
 		suppressPanel = atom.config.get('save-commands.suppressPanel')	# Load global configurations
-		@loadConfig configFile, ()=>
+		@loadConfig path, configFile, ()=>
 			@getFilesOn path, (files)=>
 				commands = []
 				for file in files

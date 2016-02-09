@@ -32,8 +32,11 @@ Here is an example of save-commands.json file
 	]
 }
 ```
-You can add "cwd" property to define custom working directory. By default, it is your project root.
-If you get errors when saving a file, double check your save-commands.json file to make sure it is formatted properly.
+You can create multiple save-commands.json files in various folders. The package will navigate file system tree
+(starting with the folder where saved file is located) until it finds a config file. That folder will also
+be used as current working directory for commands
+
+If you get errors when saving a file, double check your save-commands.json file to make sure it is formatted properly. As of version 0.6.7, the package will warn you if config file is malformed.
 
 ### Available parameters:  
 - absPath: absolute path of the saved file (without file name)  
