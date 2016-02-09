@@ -150,23 +150,23 @@ module.exports = AtomSaveCommands =
 		@subscriptions = new CompositeDisposable
 
 		# Register command that toggles this view
-		@subscriptions.add atom.commands.add 'atom-workspace',
-			'save-commands:executeOn': =>
-				treeView = atom.packages.getLoadedPackage('tree-view')
-				if treeView
-					treeView = require(treeView.mainModulePath)
-					packageObj = treeView.serialize()
-					source = packageObj.selectedPath
-					@executeOn(source,'save-commands.json')
-
-		@subscriptions.add atom.commands.add 'atom-workspace',
-			'save-commands:executeBatchOn': =>
-				treeView = atom.packages.getLoadedPackage('tree-view')
-				if treeView
-					treeView = require(treeView.mainModulePath)
-					packageObj = treeView.serialize()
-					source = packageObj.selectedPath
-					@executeOn(source,'batch-save-commands.json')
+		# @subscriptions.add atom.commands.add 'atom-workspace',
+		# 	'save-commands:executeOn': =>
+		# 		treeView = atom.packages.getLoadedPackage('tree-view')
+		# 		if treeView
+		# 			treeView = require(treeView.mainModulePath)
+		# 			packageObj = treeView.serialize()
+		# 			source = packageObj.selectedPath
+		# 			@executeOn(source,'save-commands.json')
+		#
+		# @subscriptions.add atom.commands.add 'atom-workspace',
+		# 	'save-commands:executeBatchOn': =>
+		# 		treeView = atom.packages.getLoadedPackage('tree-view')
+		# 		if treeView
+		# 			treeView = require(treeView.mainModulePath)
+		# 			packageObj = treeView.serialize()
+		# 			source = packageObj.selectedPath
+		# 			@executeOn(source,'batch-save-commands.json')
 
 		# console.log 'Save-commands registered text editor observer'
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
@@ -218,7 +218,7 @@ module.exports = AtomSaveCommands =
 			exists = file.existsSync()
 			isRoot = dir.isRoot()
 			if isRoot and exists is false
-				throw "Missing config file save-commands.json on the path"
+				throw "Missing config file #{filename} on the path"
 			break if isRoot or exists
 			dir = dir.getParent()
 
@@ -233,7 +233,7 @@ module.exports = AtomSaveCommands =
 				try
 					parsed = JSON.parse(data)
 				catch e
-					alert("Your save-commands config file is not a valid JSON")
+					alert("Your config file is not a valid JSON")
 					return
 				@config = @merge @config, parsed
 

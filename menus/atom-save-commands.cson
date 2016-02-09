@@ -1,8 +1,8 @@
 # See https://atom.io/docs/latest/creating-a-package#menus for more details
-'context-menu':
-	'.tree-view .file span[data-name$=".js"]': [
-		{label: 'Run save-commands', command: 'save-commands:executeOn'}
-	]
-	'.tree-view .directory': [
-		{label: 'Run batch save-commands', command: 'save-commands:executeBatchOn'}
-	]
+# 'context-menu':
+# 	'.tree-view .file': [
+# 		{label: 'Run save-commands', command: 'save-commands:executeOn'}
+# 	]
+# 	'.tree-view .directory': [
+# 		{label: 'Run batch save-commands', command: 'save-commands:executeBatchOn'}
+# 	]
