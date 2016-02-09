@@ -222,9 +222,13 @@ module.exports = AtomSaveCommands =
 
 			@config.cwd ?= atom.project.getPaths()[0]
 
+			splitOnce = (str,sep)->
+				components = str.split(sep)
+				[components.shift(), components.join(sep)]
+
 			modCommands = []
 			for gc in @config.commands
-				kv = gc.split(':')
+				kv = splitOnce(gc,':')
 				modCommands.push
 					glob: kv[0].trim()
 					command: kv[1].trim()
