@@ -8,7 +8,8 @@ The command(s) and their output will be displayed in a panel at the bottom of th
 
 ### How to use
 
-Create save-commands.json file in your project's root folder
+Create save-commands.json file in your project's root folder. If no save-commands.json file
+is found nothing will happen.
 Create one entry for each command you wish to run, and assign it to a glob like this:  
 glob : command {parameter}
 
