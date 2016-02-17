@@ -264,30 +264,33 @@ module.exports = AtomSaveCommands =
 	executeOn: (path,configFile)->
 		@killPanel()
 		suppressPanel = atom.config.get('save-commands.suppressPanel')	# Load global configurations
-		@loadConfig path, configFile, ()=>
-			@getFilesOn path, (files)=>
-				commands = []
-				for file in files
-					commands = _.union commands, @getCommandsFor(file)
-				if commands.length > 0
-					if !suppressPanel
-						@panel.show()
-					@hasError = false
+		try
+			@loadConfig path, configFile, ()=>
+				@getFilesOn path, (files)=>
+					commands = []
+					for file in files
+						commands = _.union commands, @getCommandsFor(file)
+					if commands.length > 0
+						if !suppressPanel
+							@panel.show()
+						@hasError = false
 
-					cleanup = (err)->
-						setTimeout ()=>
-							dataDiv = document.createElement('div')
-							dataDiv.textContent = "Done."
-							dataDiv.classList.add('command-name')
-							@resultDiv.appendChild dataDiv
-						,100
+						cleanup = (err)->
+							setTimeout ()=>
+								dataDiv = document.createElement('div')
+								dataDiv.textContent = "Done."
+								dataDiv.classList.add('command-name')
+								@resultDiv.appendChild dataDiv
+							,100
 
-						# setTimeout ()=>
-						# 	@killPanel() if not @hasError
-						# , @config.timeout
+							# setTimeout ()=>
+							# 	@killPanel() if not @hasError
+							# , @config.timeout
 
-					async.eachSeries commands, @executeCommand.bind(@), cleanup.bind(@)
-
+						async.eachSeries commands, @executeCommand.bind(@), cleanup.bind(@)
+		catch e
+			# Ignore if configFile is not found during save.
+			return
 
 	getFilesOn: (absPath, callback)->
 		fs.lstat absPath, (err,stats)=>
