@@ -1,7 +1,7 @@
 {
   "name": "save-commands",
   "main": "./lib/atom-save-commands",
-  "version": "0.6.2",
+  "version": "0.6.11",
   "description": "Package for Atom. Assign parametrized shell commands to file globs to be automatically run whenever the file is saved",
   "license": "ISC",
   "engines": {
@@ -38,11 +38,10 @@
   "homepage": "https://github.com/JsonHunt/save-commands",
   "dependencies": {
     "async": "^0.9.0",
-    "jquery": "^2.1.4",
+    "cross-spawn-async": "^2.1.8",
     "minimatch": "*",
     "string": "*",
-    "underscore": "^1.8.2",
-    "win-spawn": "^2.0.0"
+    "underscore": "^1.8.2"
   },
   "readme": "# atom-save-commands package\n\nThis package allows you to assign parametrized shell commands\nto file globs to be automatically run whenever the file is saved.  \nThe command(s) and their output will be briefly displayed in a panel at the bottom of the screen.  \nThis effectively eliminates the need for file watchers, and simplifies your build process.\n\n### How to use\n\nAt the time this package was developed, Atom didn't have a good GUI support for configuration items with array type, so after installing the package,\ngo to File -> Open your config.  \nLocate atom-save-commands: saveCommands array.\n\nCreate one entry for each command you wish to run, and assign it to a glob like this:  \nglob : command {parameter}\n\n\n### Available parameters:  \n- absPath: absolute path of the saved file (without file name)  \n- relPath: relative path of the saved file (without file name)  \n- relPathNoRoot: relative path without top folder  \n- filename: file name and extension  \n- name: file name without extension  \n- ext: file extension  \n\n### Sample config.cson\n\n\"save-commands\":  \n  commands: [  \n    \"src/\\*\\*/\\*.coffee : coffee --compile --map -o build/{relPathNoRoot} {relPath}/{filename}\"  \n    \"src/\\*\\*/\\*.jade : jade -P {relPath}/{filename} -o build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.styl : stylus {relPath}/{filename} --out build/{relPathNoRoot}\"  \n    \"src/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"  \n    \"test/\\*\\*/\\*.coffee : mocha --compilers coffee:coffee-script/register\"   \n   \"\\*\\*/\\*.go : goimports -w {relPath}{filename}\"   \n     ]  \n\nThis sample makes Atom automatically compile all CoffeeScript\nfiles from 'src' directory tree into 'build' directory, keeping the folder structure.  \nAll Jade templates and Stylus files are compiled in a similar fashion.  \nIn addition, Atom will run mocha test specs in 'test' folder whenever any of the specs or source files is modified and saved.\n",
   "readmeFilename": "README.md",

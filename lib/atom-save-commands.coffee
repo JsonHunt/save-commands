@@ -2,14 +2,14 @@ minimatch = require 'minimatch'
 child_process = require 'child_process'
 path = require 'path'
 S = require 'string'
-spawn = require 'win-spawn'
+spawn = require 'cross-spawn-async'
 _ = require 'underscore'
 fs = require 'fs'
 async = require 'async'
 $ = jQuery = require 'jquery'
 
 AtomSaveCommandsView = require './atom-save-commands-view'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable,Directory,File} = require 'atom'
 
 module.exports = AtomSaveCommands =
 	atomSaveCommandsView: null
@@ -17,30 +17,30 @@ module.exports = AtomSaveCommands =
 	subscriptions: null
 
 	config:
-		saveCommands:
-			type: 'array'
-			default: []
-			items:
-				type: 'string'
-			title: 'Glob : command'
-			description: '''
-				Executes commands on save for files matching the glob.
-				Command can contain parameters:
-				{absPath}: absolute path of the saved file (without file name)
-				{relPath}: relative path of the saved file (without file name)
-				{relFullPath}: like relPath but with filename
-				{relPathNoRoot}: relative path without top folder
-				{filename}: file name and extension
-				{name}: file name without extension
-				{ext}: file extension
-				{sep}: os specific path separator
-
-				To configure multiple globs, use File -> Open your config
-			'''
-		timeoutDuration:
-			type: 'integer'
-			default: '4000'
-			title: 'Output panel timeout duration in ms'
+		# saveCommands:
+		# 	type: 'array'
+		# 	default: []
+		# 	items:
+		# 		type: 'string'
+		# 	title: 'Glob : command'
+		# 	description: '''
+		# 		Executes commands on save for files matching the glob.
+		# 		Command can contain parameters:
+		# 		{absPath}: absolute path of the saved file (without file name)
+		# 		{relPath}: relative path of the saved file (without file name)
+		# 		{relFullPath}: like relPath but with filename
+		# 		{relPathNoRoot}: relative path without top folder
+		# 		{filename}: file name and extension
+		# 		{name}: file name without extension
+		# 		{ext}: file extension
+		# 		{sep}: os specific path separator
+		#
+		# 		To configure multiple globs, use File -> Open your config
+		# 	'''
+		# timeoutDuration:
+		# 	type: 'integer'
+		# 	default: '4000'
+		# 	title: 'Output panel timeout duration in ms'
 
 		suppressPanel:
 			type: 'boolean'
@@ -105,14 +105,19 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
+		suppress = atom.config.get('save-commands.suppressPanel')
+		if suppress is false
+			@panel.show()
+
 		div = atom.views.getView(atom.workspace).getElementsByClassName('save-result')[0]
+
 		cspr.stdout.on 'data', (data)=>
 			# console.log "STD OUT: #{data}"
 			dataDiv = document.createElement('div')
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-out')
 			@resultDiv.appendChild dataDiv
-			$(@resultDiv).scrollTop $(@resultDiv).scrollHeight
+			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stderr.on 'data', (data)=>
 			# console.log "ERR OUT: #{data}"
@@ -122,7 +127,7 @@ module.exports = AtomSaveCommands =
 			dataDiv.textContent = data.toString()
 			dataDiv.classList.add('save-result-error')
 			@resultDiv.appendChild dataDiv
-			$(@resultDiv).scrollTop $(@resultDiv).scrollHeight
+			# div.scrollTop div.prop("scrollHeight")
 
 		cspr.stdout.on 'close', (code,signal)=>
 			# console.log "STD CLOSE"
@@ -131,38 +136,38 @@ module.exports = AtomSaveCommands =
 		cspr.stderr.on 'close', (code,signal)=>
 			# console.log "ERR CLOSE"
 			setTimeout ()=>
-				dataDiv = document.createElement('div')
-				dataDiv.textContent = "Done."
-				dataDiv.classList.add('command-name')
-				@resultDiv.appendChild dataDiv
+				# dataDiv = document.createElement('div')
+				# dataDiv.textContent = "Done."
+				# dataDiv.classList.add('command-name')
+				# @resultDiv.appendChild dataDiv
 				callback()
 			,100
 
 	activate: (state) ->
 		@atomSaveCommandsView = new AtomSaveCommandsView(state.atomSaveCommandsViewState)
-		@modalPanel = atom.workspace.addModalPanel(item: @atomSaveCommandsView.getElement(), visible: false)
+		# @modalPanel = atom.workspace.addModalPanel(item: @atomSaveCommandsView.getElement(), visible: false)
 
 		# Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
 		@subscriptions = new CompositeDisposable
 
 		# Register command that toggles this view
-		@subscriptions.add atom.commands.add 'atom-workspace',
-			'save-commands:executeOn': =>
-				treeView = atom.packages.getLoadedPackage('tree-view')
-				if treeView
-					treeView = require(treeView.mainModulePath)
-					packageObj = treeView.serialize()
-					source = packageObj.selectedPath
-					@executeOn(source,'save-commands.json')
-
-		@subscriptions.add atom.commands.add 'atom-workspace',
-			'save-commands:executeBatchOn': =>
-				treeView = atom.packages.getLoadedPackage('tree-view')
-				if treeView
-					treeView = require(treeView.mainModulePath)
-					packageObj = treeView.serialize()
-					source = packageObj.selectedPath
-					@executeOn(source,'batch-save-commands.json')
+		# @subscriptions.add atom.commands.add 'atom-workspace',
+		# 	'save-commands:executeOn': =>
+		# 		treeView = atom.packages.getLoadedPackage('tree-view')
+		# 		if treeView
+		# 			treeView = require(treeView.mainModulePath)
+		# 			packageObj = treeView.serialize()
+		# 			source = packageObj.selectedPath
+		# 			@executeOn(source,'save-commands.json')
+		#
+		# @subscriptions.add atom.commands.add 'atom-workspace',
+		# 	'save-commands:executeBatchOn': =>
+		# 		treeView = atom.packages.getLoadedPackage('tree-view')
+		# 		if treeView
+		# 			treeView = require(treeView.mainModulePath)
+		# 			packageObj = treeView.serialize()
+		# 			source = packageObj.selectedPath
+		# 			@executeOn(source,'batch-save-commands.json')
 
 		# console.log 'Save-commands registered text editor observer'
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
@@ -206,14 +211,23 @@ module.exports = AtomSaveCommands =
 		if xs?.length > 0
 			@tap {}, (m) -> m[k] = v for k, v of x for x in xs
 
-	loadConfig: (filename,callback)->
-		confFile = atom.project.getPaths()[0] + path.sep + filename
+	loadConfig: (editorPath, filename,callback)->
+		dir = new File(editorPath).getParent()
+		while (true)
+			confFile = dir.getPath() + path.sep + filename
+			file = new File(confFile)
+			exists = file.existsSync()
+			isRoot = dir.isRoot()
+			if isRoot and exists is false
+				throw "Missing config file #{filename} on the path"
+			break if isRoot or exists
+			dir = dir.getParent()
 
 		timeout 	= atom.config.get('save-commands.timeout')	# Load global configurations
 		commands 	= atom.config.get('save-commands.commands')
 		@config = {}
-		@config.timeout 	= timeout ? 4000
-		@config.commands	= commands ? []
+		# @config.timeout 	= timeout ? 4000
+		# @config.commands	= commands ? []
 
 		splitOnce = (text,sep)->
 			components = text.split(sep)
@@ -221,9 +235,18 @@ module.exports = AtomSaveCommands =
 
 		fs.readFile confFile, (err,data)=>
 			if data
-				@config = @merge @config, JSON.parse(data)
+				try
+					parsed = JSON.parse(data)
+				catch e
+					alert("Your config file is not a valid JSON")
+					return
+				@config = @merge @config, parsed
 
-			@config.cwd ?= atom.project.getPaths()[0]
+			@config.cwd = dir.getPath()
+
+			splitOnce = (str,sep)->
+				components = str.split(sep)
+				[components.shift(), components.join(sep)]
 
 			modCommands = []
 			for gc in @config.commands
@@ -236,7 +259,7 @@ module.exports = AtomSaveCommands =
 			callback @config
 
 	deactivate: ->
-		@modalPanel.destroy()
+		@panel.destroy()
 		@subscriptions.dispose()
 		@atomSaveCommandsView.destroy()
 
@@ -246,7 +269,7 @@ module.exports = AtomSaveCommands =
 	executeOn: (path,configFile)->
 		@killPanel()
 		suppressPanel = atom.config.get('save-commands.suppressPanel')	# Load global configurations
-		@loadConfig configFile, ()=>
+		@loadConfig path, configFile, ()=>
 			@getFilesOn path, (files)=>
 				commands = []
 				for file in files
@@ -258,8 +281,15 @@ module.exports = AtomSaveCommands =
 
 					cleanup = (err)->
 						setTimeout ()=>
-							@killPanel() if not @hasError
-						, @config.timeout
+							dataDiv = document.createElement('div')
+							dataDiv.textContent = "Done."
+							dataDiv.classList.add('command-name')
+							@resultDiv.appendChild dataDiv
+						,100
+
+						# setTimeout ()=>
+						# 	@killPanel() if not @hasError
+						# , @config.timeout
 
 					async.eachSeries commands, @executeCommand.bind(@), cleanup.bind(@)
 

@@ -1,3 +1,14 @@
+## 0.6.8
+* removed menu items from file tree
+
+## 0.6.7
+* fixed issues with special characters in linux shell commands
+* fixed issues with : in commands
+* fixed issues with multiple project folders
+* fixed bugs causing package to crash while executing
+* removed configuration via atom settings
+* changed how package looks for configuration file
+
 ## 0.6.1
 * fixed issues with behavior of notification panel
 * added 'suppress panel' setting
