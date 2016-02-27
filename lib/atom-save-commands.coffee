@@ -172,7 +172,11 @@ module.exports = AtomSaveCommands =
 		# console.log 'Save-commands registered text editor observer'
 		@subscriptions.add atom.workspace.observeTextEditors (editor)=>
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
-			@subscriptions.add editor.onDidSave (event)=> @executeOn(event.path,'save-commands.json')
+			@subscriptions.add editor.onDidSave (event)=>
+				try
+					@executeOn(event.path,'save-commands.json')
+				catch error
+					console.log error
 
 		@panel = atom.workspace.addBottomPanel(
 			item: document.createElement('div')
