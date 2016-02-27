@@ -215,6 +215,10 @@ module.exports = AtomSaveCommands =
 		@config.timeout 	= timeout ? 4000
 		@config.commands	= commands ? []
 
+		splitOnce = (text,sep)->
+			components = text.split(sep)
+			return [components.shift(), components.join(sep)]
+
 		fs.readFile confFile, (err,data)=>
 			if data
 				@config = @merge @config, JSON.parse(data)
@@ -223,7 +227,7 @@ module.exports = AtomSaveCommands =
 
 			modCommands = []
 			for gc in @config.commands
-				kv = gc.split(':')
+				kv = splitOnce(gc,':')
 				modCommands.push
 					glob: kv[0].trim()
 					command: kv[1].trim()
