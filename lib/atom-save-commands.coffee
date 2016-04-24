@@ -52,6 +52,11 @@ module.exports = AtomSaveCommands =
 			default: 'false'
 			title: 'Consider any data on `stderr` as an error, otherwise only rely on exit code of command'
 
+		configFileName:
+			type: 'string'
+			default: 'save-commands.json'
+			title: 'File name, relative to root of project, to use for configuration'
+
 	showError: (gc)->
 		epanel = atom.workspace.addBottomPanel(
 			item: document.createElement('div')
@@ -183,7 +188,7 @@ module.exports = AtomSaveCommands =
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
 			@subscriptions.add editor.onDidSave (event)=>
 				try
-					@executeOn(event.path,'save-commands.json')
+					@executeOn(event.path,atom.config.get('save-commands.configFileName'))
 				catch error
 					console.log error
 
