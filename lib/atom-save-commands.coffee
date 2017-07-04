@@ -47,6 +47,16 @@ module.exports = AtomSaveCommands =
 			default: 'false'
 			title: 'Only display command output panel on error'
 
+		stderrDataAsError:
+			type: 'boolean'
+			default: 'false'
+			title: 'Consider any data on `stderr` as an error, otherwise only rely on exit code of command'
+
+		configFileName:
+			type: 'string'
+			default: 'save-commands.json'
+			title: 'File name, relative to root of project, to use for configuration'
+
 	showError: (gc)->
 		epanel = atom.workspace.addBottomPanel(
 			item: document.createElement('div')
@@ -105,9 +115,8 @@ module.exports = AtomSaveCommands =
 		cspr = spawn command, args ,
 			cwd: @config.cwd
 
-		suppress = atom.config.get('save-commands.suppressPanel')
-		if suppress is false
-			@panel.show()
+		suppress = atom.config.get('save-commands.suppressPanel') # hide the panel until such time as we have an error
+		stderrAsError = atom.config.get('save-commands.stderrDataAsError') # should we count stderr as an error? if not, rely on exit code > 0
 
 		div = atom.views.getView(atom.workspace).getElementsByClassName('save-result')[0]
 
@@ -121,7 +130,8 @@ module.exports = AtomSaveCommands =
 
 		cspr.stderr.on 'data', (data)=>
 			# console.log "ERR OUT: #{data}"
-			@panel.show()
+			if stderrAsError
+				@panel.show() # don't wait until we get a non-zero exit code
 			@hasError = true
 			dataDiv = document.createElement('div')
 			dataDiv.textContent = data.toString()
@@ -142,6 +152,10 @@ module.exports = AtomSaveCommands =
 				# @resultDiv.appendChild dataDiv
 				callback()
 			,100
+
+		cspr.on 'exit', (code,signal)=>
+			if code # may have already been shown by stderr, but will show in this case regardless
+				@panel.show()
 
 	activate: (state) ->
 		@atomSaveCommandsView = new AtomSaveCommandsView(state.atomSaveCommandsViewState)
@@ -174,7 +188,7 @@ module.exports = AtomSaveCommands =
 			# console.log "Registered onSave event with '#{editor.getPath()}'"
 			@subscriptions.add editor.onDidSave (event)=>
 				try
-					@executeOn(event.path,'save-commands.json')
+					@executeOn(event.path,atom.config.get('save-commands.configFileName'))
 				catch error
 					console.log error
 
