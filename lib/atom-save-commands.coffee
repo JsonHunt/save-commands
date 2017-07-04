@@ -109,7 +109,33 @@ module.exports = AtomSaveCommands =
 		@cmdDiv.classList.add('command-name')
 		@resultDiv.appendChild @cmdDiv
 
-		cmdarr = command.split(' ')
+		# cmdarr = command.split(' ')
+		chars = Array.from(command)
+		inQuotes = false
+		currentPart = ''
+		cmdarr = []
+		chars.forEach((c) ->
+			if c == '"' && !inQuotes
+				inQuotes = true
+				currentPart = ''
+			else if c == '"' and inQuotes
+				cmdarr.push(currentPart)
+				inQuotes = false
+				currentPart = ''
+			else if c == ' ' and inQuotes
+				currentPart += c
+			else if c == ' ' and !inQuotes
+				if currentPart != ''
+					cmdarr.push(currentPart)
+				currentPart = ''
+			else
+				currentPart += c
+		)
+		if currentPart != '' and !inQuotes
+			cmdarr.push(currentPart)
+		else if inQuotes
+			console.log('error: unmatched quotes')
+		# console.log(cmdarr)
 		command = cmdarr[0]
 		args = _.rest(cmdarr)
 		cspr = spawn command, args ,
